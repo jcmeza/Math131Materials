@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.551">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Numerical Analysis Lecture Notes - 22&nbsp; Numerical Integration Basics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./NumIntNewtonCotes.html" rel="next">
+<link href="./NumerIntegr.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating slimcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./NumerIntegr.html">Numerical Integration (Quadrature)</a></li><li class="breadcrumb-item"><a href="./NumIntBasics.html"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Numerical Integration Basics</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./NumerIntegr.html">Numerical Integration (Quadrature)</a></li><li class="breadcrumb-item"><a href="./NumIntBasics.html"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Numerical Integration Basics</span></a></li></ol></nav>
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Numerical Integration Basics</span></h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Numerical Analysis Lecture Notes</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./Intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Foundations</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./TaylorTheorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Taylor’s Theorem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Errors.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Errors</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FloatPointSys.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Floating Point Systems</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IEEE.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">IEEE Floating Point Standard</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./AlgorithmsCondition.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Stability and Conditioning</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./RootsEqn.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nonlinear Equations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Bisect.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Bisection Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Newton.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Newton’s Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Secant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Secant Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FixedPt.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Fixed Point Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FixedPtEU.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Fixed Point Existence and Uniqueness</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FixedPtConvg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Fixed Point Iteration Convergence (Part 1)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FixedPtQConvg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Fixed Point Iteration Convergence (Part 2)</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./PolyInterpIntro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Interpolation and Approximation</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpIntro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Polynomial Interpolation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpLagr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Lagrange Polynomial Interpolation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpDividedDiff.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Divided Differences and Newton Interpolating Polynomials</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpErr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Interpolation Error</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpCubicSplines.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Piecewise Polynomials and Cubic Splines</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./NumerDiff.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Numerical Differentiation</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FwdDiff.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Finite Differences</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./HigherOrderFD.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Finite Differences via Lagrange Polynomials (Optional)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FDStability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Richardson Extrapolation and Finite Difference Stability</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./NumerIntegr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Numerical Integration (Quadrature)</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./NumIntBasics.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Numerical Integration Basics</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./NumIntNewtonCotes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Newton-Cotes Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./NumIntComposite.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Composite Quadrature Rules</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./NumIntAdaptive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Adaptive Quadrature</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./IVPODE.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Initial-Value Problems for ODEs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPEuler.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Euler’s Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPEulerErrAny.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">Error Analysis for Euler’s Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPHigherOrder.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Higher-order Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPMultistep.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Multi-Step Methods for IVP</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./BigONotation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Big O Notation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPExtUniq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Existence and Uniqueness of IVP</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./datasets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">DataSets</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-basics-integration" id="toc-sec-basics-integration" class="nav-link active" data-scroll-target="#sec-basics-integration"><span class="header-section-number">22.1</span> Introduction</a></li>
+  <li><a href="#interpolating-polynomials" id="toc-interpolating-polynomials" class="nav-link" data-scroll-target="#interpolating-polynomials"><span class="header-section-number">22.2</span> Interpolating Polynomials</a></li>
+  <li><a href="#simpsons-rule" id="toc-simpsons-rule" class="nav-link" data-scroll-target="#simpsons-rule"><span class="header-section-number">22.3</span> Simpson’s Rule</a>
+  <ul class="collapse">
+  <li><a href="#setting-up-the-integral-of-the-interpolating-polynomial." id="toc-setting-up-the-integral-of-the-interpolating-polynomial." class="nav-link" data-scroll-target="#setting-up-the-integral-of-the-interpolating-polynomial.">Setting up the integral of the interpolating polynomial.</a></li>
+  <li><a href="#evaluating-the-integral-of-the-interpolating-polynomial." id="toc-evaluating-the-integral-of-the-interpolating-polynomial." class="nav-link" data-scroll-target="#evaluating-the-integral-of-the-interpolating-polynomial.">Evaluating the integral of the interpolating polynomial.</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content">
+
+
+
+
+
+<section id="sec-basics-integration" class="level2 page-columns page-full" data-number="22.1">
+<h2 data-number="22.1" class="anchored" data-anchor-id="sec-basics-integration"><span class="header-section-number">22.1</span> Introduction</h2>
+<p>Let’s start with a bit of background. What is the first thing you think of when you see:<br>
+<span id="eq-If"><span class="math display">\[
+\int_a^b f(x) dx
+\tag{22.1}\]</span></span></p>
+<p>If you said, the area under the curve, you’re right! This leads us to the <strong>general strategy</strong>:</p>
+<p>Approximate <span class="math display">\[
+I(f) = \int_a^b f(x) dx \approx \sum_{i=0}^{n} a_i f(x_i)
+\]</span> for some yet to be determined coefficients <span class="math inline">\(a_i\)</span>.</p>
+<p>We will call this <em>numerical quadrature</em>.</p>
+<p>To do this we will follow the same strategy we used for numerical differentiation, i.e.&nbsp;we will replace the function whose integral we seek with one whose integral can be more easily evaluated – an <em>interpolating polynomial</em>.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Approach
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Our overall goal is to approximate the integral <a href="#eq-If" class="quarto-xref">Equation&nbsp;<span>22.1</span></a> by computing <span class="math inline">\(\sum_{i=0}^{n} a_i f(x_i)\)</span> through the following 3 steps:</p>
+<ol type="1">
+<li><p>Write <span class="math inline">\(f(x)\)</span> as an interpolating polynomial</p></li>
+<li><p>Integrate the polynomial</p></li>
+<li><p>Understand/analyze the truncation error</p></li>
+</ol>
+</div>
+</div>
+<p>Before we start, let’s first develop some intuition on what we’re doing. Consider <a href="#fig-traprule" class="quarto-xref">Figure&nbsp;<span>22.1</span></a> in which we’ve plotted a generic function. A natural idea is to use the well-known trapezoidal rule to approximate the area under the curve.</p>
+<div class="cell page-columns page-full">
+<div class="cell-output-display page-columns page-full">
+<div id="fig-traprule" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full" data-cap-location="margin">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-traprule-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="NumIntBasics_files/figure-html/fig-traprule-1.png" class="img-fluid figure-img" width="384">
+</div>
+<figcaption class="quarto-float-caption-margin quarto-float-caption quarto-float-fig margin-caption" id="fig-traprule-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;22.1: Trapezoidal Rule.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>If we do this, it would make sense to approximate the integral as: <span class="math display">\[
+\int_1^3 f(x)dx \approx \frac{h}{2} [ f(x_0) + f(x_1)], \ x_0=1, x_1=3,
+\]</span></p>
+<p>where <span class="math inline">\(h\)</span> is defined as the interval width, i.e.&nbsp;<span class="math inline">\(h = b-a = 3-1\)</span>. Notice also, that in <a href="#fig-traprule" class="quarto-xref">Figure&nbsp;<span>22.1</span></a> all that we did was to approximate the function by using a linear approximation using the two endpoints. It is natural to conjecture for what type of functions would the trapezoidal rule be exact for? Can you guess?</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Remark
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><em>In order to get a more accurate approximation, we could subdivide the total region into smaller trapezoids and sum over all of them. All of this is by way of developing some intuition on what we should do. To make this more rigorous we will need to develop our framework and compute error estimates for our approximations. We will return to this idea in</em> <a href="NumIntComposite.html#sec-composite-integration" class="quarto-xref"><span>Section 24.1</span></a> <em>on</em> <strong>Composite Integration</strong></p>
+</div>
+</div>
+</section>
+<section id="interpolating-polynomials" class="level2 page-columns page-full" data-number="22.2">
+<h2 data-number="22.2" class="anchored" data-anchor-id="interpolating-polynomials"><span class="header-section-number">22.2</span> Interpolating Polynomials</h2>
+<p><strong>Step 1. Write down our function as a Lagrange interpolating polynomial along with its truncation error.</strong></p>
+<p>Let <span id="eq-flagr"><span class="math display">\[
+f(x) = \sum_{i=0}^{n} f(x_i) L_i(x) + \prod_{i=0}^{n} (x - x_i)\frac{f^{(n+1)} (\xi(x))}{(n+1)!}.
+\tag{22.2}\]</span></span></p>
+<p>For convenience, let’s denote</p>
+<p><span class="math display">\[
+\Psi_n(x) = \prod_{i=0}^{n} (x - x_i).
+\]</span></p>
+<p>We can then write <a href="#eq-flagr" class="quarto-xref">Equation&nbsp;<span>22.2</span></a> as:</p>
+<p><span class="math display">\[
+f(x) = \sum_{i=0}^{n} f(x_i) L_i(x) + \Psi_n(x)\ \frac{f^{(n+1)} (\xi(x))}{(n+1)!}.
+\]</span></p>
+<p><strong>Step 2. Integrate the interpolating polynomial:</strong></p>
+<p><span class="math display">\[
+\int_a^b f(x) = \int_a^b \sum_{i=0}^{n} f(x_i) L_i(x) + \int_a^b \Psi_n(x)\ \frac{f^{(n+1)} (\xi(x))}{(n+1)!}.
+\]</span></p>
+<p>Notice we can move the integral under the sum for the first term. Now (again for convenience) let’s denote</p>
+<p><span id="eq-ci"><span class="math display">\[
+c_i = \int_a^b L_i(x) dx, \ i=0, \ldots, n.
+\tag{22.3}\]</span></span></p>
+<p>Rearranging we get:</p>
+<p><span class="math display">\[
+\int_a^b f(x) = \sum_{i=0}^{n} c_i f(x_i) + E(f),
+\]</span></p>
+<p>where we denote the truncation error <span class="math inline">\(E(f)\)</span> by:</p>
+<p><span id="eq-errorf"><span class="math display">\[
+E(f) = \frac{1}{(n+1)!}\int_a^b \Psi_n(x)\ f^{(n+1)} (\xi(x)) dx.
+\tag{22.4}\]</span></span></p>
+<p>Notice we are partway to our goal of having written down the integral in the form we wanted:</p>
+<p><span class="math display">\[
+I(f) = \int_a^b f(x) dx \approx \sum_{i=0}^{n} a_i f(x_i).
+\]</span></p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Remark
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><em>The</em> <span class="math inline">\(a_i\)</span> <em>and</em> <span class="math inline">\(c_i\)</span> (<a href="#eq-ci" class="quarto-xref">Equation&nbsp;<span>22.3</span></a>) <em>are not the same, but they are related in some yet to be determined way!</em></p>
+<p>We’re now left with only two steps:</p>
+<ol start="2" type="1">
+<li><p>Compute <span class="math inline">\(c_i\)</span> for a specific interpolating polynomial, and</p></li>
+<li><p>Understand/analyze the error function <span class="math inline">\(E(f)\)</span></p></li>
+</ol>
+</div>
+</div>
+<p><strong>Specific Case:</strong> <span class="math inline">\(n=1\)</span> <strong>(Linear Interpolating Polynomial)</strong></p>
+<p>Let’s take the easiest case, <span class="math inline">\(n=1\)</span>, a linear Lagrange interpolating polynomial. To be consistent with our earlier notation we’ll also let <span class="math inline">\(a = x_0\)</span> and <span class="math inline">\(b = x_n = x_1\)</span> for this case.</p>
+<p>Recall, the first degree Lagrange polynomial takes the form:</p>
+<p><span id="eq-P1"><span class="math display">\[
+P_1(x) = \frac{(x - x_1)}{x_0 - x_1} f(x_0) + \frac{(x - x_0)}{x_1 - x_0} f(x_1),
+\tag{22.5}\]</span></span></p>
+<p>and the truncation error <a href="#eq-errorf" class="quarto-xref">Equation&nbsp;<span>22.4</span></a> reduces to</p>
+<p><span id="eq-Ef1"><span class="math display">\[
+E(f) = \frac{1}{2} \int_{x_0}^{x_1}(x - x_0)(x - x_1) f^{\prime\prime}(\xi(x)) dx.
+\tag{22.6}\]</span></span></p>
+<p>Let’s consider the truncation error first.</p>
+<p>It would be nice if we could take <span class="math inline">\(f^{\prime\prime}(\xi(x))\)</span> term outside the integral to simplify the integral. Let’s first define <span class="math inline">\(g(x) =(x - x_0)(x - x_1)\)</span>, and notice that <span class="math inline">\(g(x)\)</span> doesn’t change sign on <span class="math inline">\([x_0,x_1]\)</span>.</p>
+<p>That means we can apply the Weighted Mean Value Theorem (WMVT) for integrals and pull the <span class="math inline">\(f^{\prime\prime}(\xi(x))\)</span> term outside of the integral.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><em>Weighted Mean Value Theorem for Integrals (</em>): Suppose that <span class="math inline">\(f \in C[a,b]\)</span>, the Riemann integral of <span class="math inline">\(g\)</span> exists on <span class="math inline">\([a,b]\)</span>, and <span class="math inline">\(g(x)\)</span> does not change sign on <span class="math inline">\([a,b]\)</span>. Then there exists a number <span class="math inline">\(c \in (a,b)\)</span> such that <span class="math display">\[
+\int_a^b f(x) g(x) dx = f(c) \int_a^b g(x) dx
+\]</span></p>
+</div></div><p>That simplifies <span class="math inline">\(E(f)\)</span> so that</p>
+<p><span class="math display">\[
+E(f) = \frac{1}{2} f^{\prime\prime}(\xi) \int_{x_0}^{x_1}(x - x_0)(x - x_1)  dx,
+\]</span></p>
+<p>for some <span class="math inline">\(\xi \in [x_0, x_1]\)</span>.</p>
+<p>That just leaves us with integrating the quadratic inside the integral, which reduces to:</p>
+<p><span id="eq-ef2"><span class="math display">\[
+E(f) = \frac{1}{2} f^{\prime\prime}(\xi) \left[ \frac{x^3}{3} - \frac{(x_1 + x_0)}{2}x^2 + x_0x_1x \right]_{x_0}^{x_1}.
+\tag{22.7}\]</span></span></p>
+<p>To simplify the calculations, let’s first do a change of variable, <span class="math inline">\(x^\prime = x - x_0.\)</span> Also recall that <span class="math inline">\(x_1 = x_0 + h\)</span>. As a result, the limits reduce to <span class="math inline">\(x_0 \rightarrow 0, x_1 \rightarrow h\)</span>, and as a result, the term in brackets in <a href="#eq-ef2" class="quarto-xref">Equation&nbsp;<span>22.7</span></a> evaluates to:</p>
+<p><span class="math display">\[
+\left[ \frac{h^3}{3} - \frac{(h) h^2}{2} + 0 \right] = \frac{-h^3}{6}.
+\]</span></p>
+<p>That simplifies <span class="math inline">\(E(f)\)</span> to</p>
+<p><span id="eq-ef3"><span class="math display">\[
+E(f) =  - \frac{h^3 f^{\prime\prime}(\xi)}{12}.
+\tag{22.8}\]</span></span></p>
+<p>That takes care of <strong>Step 3 - Understand/Analyze the Truncation Error</strong> <span class="math inline">\(E(f)\)</span><strong>!</strong></p>
+<p>To reach our final goal, we just need to complete the second step we need to compute the integrals of <a href="#eq-P1" class="quarto-xref">Equation&nbsp;<span>22.5</span></a>, i.e.</p>
+<p><span class="math display">\[
+\begin{aligned}
+\int_{x_0}^{x_1} P_1(x) &amp;= \int_{x_0}^{x_1} \frac{(x - x_1)}{x_0 - x_1} f(x_0) + \frac{(x - x_0)}{x_1 - x_0} f(x_1), \\
+&amp;= \left[ \frac{(x - x_1)^2}{2(x_0 - x_1)} f(x_0) + \frac{(x - x_0)^2}{2(x_1 - x_0)} f(x_1) \right]_{x_0}^{x_1}.
+\end{aligned}
+\]</span></p>
+<p>Notice that for the upper value <span class="math inline">\(x_1\)</span> the first term in the sum drops out, and likewise for the lower value <span class="math inline">\(x_0\)</span> the second term drops out, leaving only 2 terms.</p>
+<p>Evaluating these two terms we get:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\int_{x_0}^{x_1} P_1(x) &amp;= \left[ \frac{(x_1 - x_0)^2}{2(x_1 - x_0)} f(x_1) - \frac{(x_0 - x_1)^2}{2(x_0 - x_1)} f(x_0) \right], \\
+&amp;= \left[ \frac{(x_1 - x_0)}{2} f(x_1) - \frac{(x_0 - x_1)}{2} f(x_0) \right], \\
+&amp;= \left[ \frac{(x_1 - x_0)}{2} f(x_1) + \frac{(x_1 - x_0)}{2} f(x_0) \right], \\
+&amp;= \left( \frac{x_1 - x_0}{2} \right) \left[ f(x_1) + f(x_0) \right], \\
+&amp;= \frac{h}{2} \left[ f(x_1) + f(x_0) \right],
+\end{aligned}
+\]</span> where the last line is due to the fact that <span class="math inline">\(x_1 = x_0 + h\)</span>.</p>
+<p>Pulling everything together leads us to our desired result:</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Trapezoidal Rule
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span class="math display">\[
+\int_a^b f(x) dx = \frac{h}{2} \left[ f(x_0) + f(x_1) \right] - \frac{h^3}{12} f^{\prime\prime}(\xi),
+\]</span></p>
+<p><strong><em>Trapezoidal Rule exact for polynomials of degree</em></strong> <span class="math inline">\(\leq\)</span> <strong><em>1.</em></strong></p>
+<p>Since the truncation error is given by <span class="math inline">\(\frac{h^3}{12}f^{\prime\prime}(\xi)\)</span> we expect that for any function whose second derivative is identical to zero that the Trapezoidal Rule will be <em>exact</em>, and in particular for any polynomial of degree 1 or less.</p>
+</div>
+</div>
+</section>
+<section id="simpsons-rule" class="level2 page-columns page-full" data-number="22.3">
+<h2 data-number="22.3" class="anchored" data-anchor-id="simpsons-rule"><span class="header-section-number">22.3</span> Simpson’s Rule</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Optional
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The derivation for Simpson’s Rule follows the one for the Trapezoidal Rule, with some minor modifications. The following is included for completeness (and for practice), but you may also want to skip down to the final formula (<a href="#eq-simpsonsrule" class="quarto-xref">Equation&nbsp;<span>22.13</span></a>) and discussion of the major properties of Simpson’s Rule.</p>
+</div>
+</div>
+<p>In a similar fashion to our approach for deriving the Trapezoid Rule, if we integrate the second-degree Lagrange polynomial, we can derive Simpson’s Rule.</p>
+<p><strong><em>Conjecture</em></strong></p>
+<ol type="1">
+<li><p>For what degree polynomials will Simpson’s rule be exact?</p></li>
+<li><p>What do you think the order of the truncation error will be for Simpson’s method?</p></li>
+</ol>
+<section id="setting-up-the-integral-of-the-interpolating-polynomial." class="level3">
+<h3 class="anchored" data-anchor-id="setting-up-the-integral-of-the-interpolating-polynomial.">Setting up the integral of the interpolating polynomial.</h3>
+<p>As before, we will first approximate the integrand by an interpolating polynomial. In this case we will take 3 equally spaced points <span class="math inline">\(x_0,x_1, x_2\)</span> such that <span class="math inline">\(x_0 = a, x_1 = x_0 + h, x_2 = b\)</span>, where <span class="math inline">\(h = (b-a)/2\)</span>.</p>
+<p>We assumed that <span class="math inline">\(f(x)\)</span> had as many derivatives as we needed. This time let’s write the Taylor expansion for <span class="math inline">\(f(x)\)</span> about <span class="math inline">\(x_1\)</span> going out to the 4th derivative term. The reason for going out to the 4th derivative will become clear in a minute.</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(x) &amp;= f(x_1) + f^{\prime}(x_1)(x - x_1) + \frac{1}{2} f^{\prime\prime} (x_1)(x - x_1)^2  \\
+&amp;+ \frac{1}{6} f^{\prime\prime\prime}(x_1) (x - x_1)^3 + \frac{1}{24} f^{(4)} (\xi), \qquad \xi \in[x_0, x_2]
+\end{aligned}
+\]</span></p>
+<p>Now let’s integrate this equation:</p>
+<p><span id="eq-intP2"><span class="math display">\[
+\begin{aligned}
+\int_{x_0}^{x_2} f(x) &amp;= \Big[ f(x_1)(x - x_1) + \frac{1}{2} f^{\prime} (x_1)(x - x_1)^2 \\
+&amp;+ \frac{1}{6} f^{\prime\prime}(x_1) (x - x_1)^3 + \frac{1}{24} f^{\prime\prime\prime}(x_1) (x - x_1)^4 \Big]_{x_0}^{x_2} \\
+&amp;+ \frac{1}{24} \int_{x_0}^{x_2}f^{(4)} (\xi(x))(x-x_1)^4 dx. \\
+\end{aligned}
+\tag{22.9}\]</span></span></p>
+<p>As before let’s consider the error term first and notice that it would be nice to take the <span class="math inline">\(f^{(4)} (\xi(x))\)</span> in the last term outside of the integral.</p>
+<p>Using the previous trick, we note that <span class="math inline">\((x-x_1)^4\)</span> doesn’t change sign in the interval <span class="math inline">\([x_0, x_1]\)</span>, so we can again use the Weighted Mean Value Theorem for Integrals to pull the <span class="math inline">\(f^{(4)}\)</span> term out from inside the integral.</p>
+<p><span class="math display">\[
+\begin{aligned}
+E(f) &amp;= \frac{1}{24} \int_{x_0}^{x_2}f^{(4)} (\xi(x))(x-x_1)^4 dx, \\
+&amp;= \frac{f^{(4)} (\xi_1)}{24} \int_{x_0}^{x_2}(x-x_1)^4 dx, \\
+&amp;= \frac{f^{(4)} (\xi_1)}{120} (x-x_1)^5 \Big|_{x_0}^{x_2}.\\
+\end{aligned}
+\]</span>for some <span class="math inline">\(\xi_1 \in [x_0, x_2]\)</span>.</p>
+<p>Now we can use the fact that <span class="math inline">\(h = x_2-x_1 = x_1 - x_0\)</span> to reduce the equation to:</p>
+<p><span id="eq-Effinal"><span class="math display">\[
+E(f) = \frac{h^5 f^{(4)} (\xi_1)}{60}.
+\tag{22.10}\]</span></span></p>
+</section>
+<section id="evaluating-the-integral-of-the-interpolating-polynomial." class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="evaluating-the-integral-of-the-interpolating-polynomial.">Evaluating the integral of the interpolating polynomial.</h3>
+<p>Our only remaining task is to evaluate the first term in <a href="#eq-intP2" class="quarto-xref">Equation&nbsp;<span>22.9</span></a> to arrive at formulas for the <span class="math inline">\(a_i(x)\)</span> coefficients and produce the approximation for <span class="math inline">\(I(f)\)</span>. :</p>
+<p><span class="math display">\[
+\begin{aligned}
+\Big[ f(x_1)(x - x_1) &amp;+ \frac{1}{2} f^{\prime} (x_1)(x - x_1)^2 \\
+&amp;+ \frac{1}{6} f^{\prime\prime}(x_1) (x - x_1)^3 + \frac{1}{24} f^{\prime\prime\prime}(x_1) (x - x_1)^4 \Big]_{x_0}^{x_2}
+\end{aligned}
+\]</span></p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip:
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>When faced with a daunting amount of algebra (recall our experience with the Trapezoid Rule), it helps to remember both the goal and the assumptions we’ve made that might help simplify the task. For example, recall our assumption of equally spaced nodes. We can replace <span class="math inline">\(x_2-x_1 = x_1-x_0\)</span> by <span class="math inline">\(h\)</span> – which reduces our formula to:</p>
+</div>
+</div>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\Big[ f(x_1)h + \frac{1}{2} f^{\prime} (x_1)h^2 + \frac{1}{6} f^{\prime\prime}(x_1) h^3 + \frac{1}{24} f^{\prime\prime\prime}(x_1)h^4\Big] - \\
+&amp;\Big[ f(x_1)(-h) + \frac{1}{2} f^{\prime} (x_1)h^2 + \frac{1}{6} f^{\prime\prime}(x_1) (-h)^3 + \frac{1}{24} f^{\prime\prime\prime}(x_1)h^4 \Big].
+\end{aligned}
+\]</span></p>
+<p>Nicely, the <span class="math inline">\(h^2\)</span> and <span class="math inline">\(h^4\)</span> terms cancel out, leaving us with</p>
+<p><span id="eq-intP2a"><span class="math display">\[
+2hf(x_1) + \frac{h^3}{3} f^{\prime\prime} (x_1).
+\tag{22.11}\]</span></span></p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><strong><em>Remark:</em></strong> We could just as easily have noticed that (under the assumption of equally spaced nodes), <span class="math inline">\((x_2 - x_1)^k - (x_0 - x_1)^k = 0\)</span> for even <span class="math inline">\(k\)</span> and that <span class="math inline">\((x_2 - x_1)^k - (x_0 - x_1)^k = 2h^k\)</span> for odd <span class="math inline">\(k\)</span>.</p>
+</div></div><p>Now remember our goal was to write our approximation in terms of only <span class="math inline">\(f(x_i)\)</span>, meaning we should look for a way to replace the second derivative term in <a href="#eq-intP2a" class="quarto-xref">Equation&nbsp;<span>22.11</span></a>.</p>
+<p>For this task, we can take advantage of one last substitution, which is to use our finite difference approximation for the second derivative (derived in our previous lecture), i.e.</p>
+<p><span class="math display">\[
+f^{\prime \prime}(x_1) = \frac{f(x_0) - 2f(x_1) + f(x_2)}{h^2} -\frac{h^2}{12} f^{(4)}(\xi_2)
+\]</span></p>
+<p>and not forgetting to include its own error term.</p>
+<p>When substituted into <a href="#eq-intP2a" class="quarto-xref">Equation&nbsp;<span>22.11</span></a> we get:</p>
+<p><span id="eq-intP2b"><span class="math display">\[
+2hf(x_1) + \frac{h^3}{3} \left[\frac{f(x_0) -  2f(x_1) + f(x_2)}{h^2} -\frac{h^2}{12} f^{(4)}(\xi_2) \right]
+\tag{22.12}\]</span></span></p>
+<p>Combining <a href="#eq-intP2b" class="quarto-xref">Equation&nbsp;<span>22.12</span></a> with <a href="#eq-Effinal" class="quarto-xref">Equation&nbsp;<span>22.10</span></a> and simplifying terms we arrive at our final result, which is called Simpson’s Rule:</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Simpson’s Rule
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span id="eq-simpsonsrule"><span class="math display">\[
+\int_{x_0}^{x_2} f(x)dx = \frac{h}{3} [ f(x_0) + 4f(x_1) + f(x_2)] - \frac{h^5}{90} f^{(4)}(\xi).
+\tag{22.13}\]</span></span></p>
+<p><strong>Caution:</strong> Other formulas use <span class="math inline">\(\frac{b-a}{6}\)</span> instead of <span class="math inline">\(\frac{h}{3}\)</span> in the definition of Simpson’s Rule. Just remember that here, we defined <span class="math inline">\(h=x_2-x_1 = x_1-x_0\)</span>, so <span class="math inline">\(h=\frac{b-a}{2},\)</span> as a result the two definitions are equivalent.</p>
+</div>
+</div>
+<p>I leave as an exercise how to combine the two <span class="math inline">\(f^{(4)}\)</span> terms from <a href="#eq-Effinal" class="quarto-xref">Equation&nbsp;<span>22.10</span></a> and <a href="#eq-intP2b" class="quarto-xref">Equation&nbsp;<span>22.12</span></a> into one, i.e.&nbsp;show that</p>
+<p><span class="math display">\[
+- \frac{h^5}{60} f^{(4)}(\xi_1) - \frac{h^5}{36} f^{(4)}(\xi_2)
+= - \frac{h^5}{90} f^{(4)}(\xi), \quad \xi \in(a,b)
+\]</span></p>
+<p><strong>Remark:</strong> In some formulations, the leading term in Simpson’s Rule is <span class="math inline">\(h/3\)</span> and sometimes it’s <span class="math inline">\((b-a)/6.\)</span> This is a result of how one defines <span class="math inline">\(h\)</span>. Here we set it equal to <span class="math inline">\(x_2-x_1 = x_1-x_0\)</span>, hence <span class="math inline">\(h = (b-a)/2\)</span>.</p>
+<p>An important result is that instead of the expected <span class="math inline">\(O(h^4)\)</span> error term, we might have expected from going from a linear interpolant to a quadratic interpolant we have instead gained an additional order of accuracy in the error term!</p>
+<div id="def-quadprec" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 22.1</strong></span> The <strong><em>precision</em></strong> (also degree of accuracy<strong>)</strong> of a quadrature formula is defined as the largest positive integer <span class="math inline">\(n\)</span> such that the quadrature formula is exact for <span class="math inline">\(x^k\)</span>, for <span class="math inline">\(k=0,1, \ldots, n\)</span>.</p>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In the case of Simpson’s rule, it is exact for any polynomial of degree 3 or less, hence the precision is 3. Similarly, the precision for the Trapezoid rule is 1. The easiest way to remember this is to take a look at the derivative in the error term and subtract one order. Please do not confuse this with the order of accuracy, which can be seen from the power in the <span class="math inline">\(h\)</span> term!</p>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>today <span class="ot">&lt;-</span> <span class="fu">Sys.Date</span>()</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span>(today, <span class="at">format=</span><span class="st">"Revised: %B %d %Y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Revised: May 07 2024"</code></pre>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./NumerIntegr.html" class="pagination-link" aria-label="Numerical Integration (Quadrature)">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Numerical Integration (Quadrature)</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./NumIntNewtonCotes.html" class="pagination-link" aria-label="Newton-Cotes Methods">
+        <span class="nav-page-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Newton-Cotes Methods</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Numerical Analysis Lecture Notes, Juan C. Meza, jcmeza@ucmerced.edu, 2023</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>This book was built with <a href="https://quarto.org/">Quarto</a>.</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.551">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Numerical Analysis Lecture Notes - 19&nbsp; Finite Differences</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./HigherOrderFD.html" rel="next">
+<link href="./NumerDiff.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating slimcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./NumerDiff.html">Numerical Differentiation</a></li><li class="breadcrumb-item"><a href="./FwdDiff.html"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Finite Differences</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./NumerDiff.html">Numerical Differentiation</a></li><li class="breadcrumb-item"><a href="./FwdDiff.html"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Finite Differences</span></a></li></ol></nav>
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Finite Differences</span></h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Numerical Analysis Lecture Notes</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./Intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Foundations</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./TaylorTheorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Taylor’s Theorem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Errors.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Errors</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FloatPointSys.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Floating Point Systems</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IEEE.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">IEEE Floating Point Standard</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./AlgorithmsCondition.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Stability and Conditioning</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./RootsEqn.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nonlinear Equations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Bisect.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Bisection Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Newton.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Newton’s Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Secant.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Secant Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FixedPt.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Fixed Point Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FixedPtEU.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Fixed Point Existence and Uniqueness</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FixedPtConvg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Fixed Point Iteration Convergence (Part 1)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FixedPtQConvg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Fixed Point Iteration Convergence (Part 2)</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./PolyInterpIntro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Interpolation and Approximation</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpIntro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Polynomial Interpolation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpLagr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Lagrange Polynomial Interpolation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpDividedDiff.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Divided Differences and Newton Interpolating Polynomials</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpErr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Interpolation Error</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./InterpCubicSplines.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Piecewise Polynomials and Cubic Splines</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./NumerDiff.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Numerical Differentiation</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FwdDiff.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Finite Differences</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./HigherOrderFD.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Finite Differences via Lagrange Polynomials (Optional)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./FDStability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Richardson Extrapolation and Finite Difference Stability</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./NumerIntegr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Numerical Integration (Quadrature)</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./NumIntBasics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Numerical Integration Basics</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./NumIntNewtonCotes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Newton-Cotes Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./NumIntComposite.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Composite Quadrature Rules</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./NumIntAdaptive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Adaptive Quadrature</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./IVPODE.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Initial-Value Problems for ODEs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPEuler.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Euler’s Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPEulerErrAny.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">Error Analysis for Euler’s Method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPHigherOrder.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Higher-order Methods</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPMultistep.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Multi-Step Methods for IVP</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./BigONotation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Big O Notation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./IVPExtUniq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Existence and Uniqueness of IVP</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./datasets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">DataSets</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-finitediff" id="toc-sec-finitediff" class="nav-link active" data-scroll-target="#sec-finitediff"><span class="header-section-number">19.1</span> Motivation</a></li>
+  <li><a href="#taylor-series-approach" id="toc-taylor-series-approach" class="nav-link" data-scroll-target="#taylor-series-approach"><span class="header-section-number">19.2</span> Taylor Series Approach</a></li>
+  <li><a href="#central-differences" id="toc-central-differences" class="nav-link" data-scroll-target="#central-differences"><span class="header-section-number">19.3</span> Central Differences</a></li>
+  <li><a href="#second-derivative-formulas" id="toc-second-derivative-formulas" class="nav-link" data-scroll-target="#second-derivative-formulas"><span class="header-section-number">19.4</span> Second Derivative Formulas</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content">
+
+
+
+
+
+<section id="sec-finitediff" class="level2" data-number="19.1">
+<h2 data-number="19.1" class="anchored" data-anchor-id="sec-finitediff"><span class="header-section-number">19.1</span> Motivation</h2>
+<p>Computing derivatives numerically arises in many situations in numerical analysis as well as scientific computing. Some of the most common examples include:</p>
+<ul>
+<li><p>Numerically solving ordinary differential equations (ODEs), partial differential equations (PDEs), nonlinear equations and optimization (e.g.&nbsp;Newton’s method).</p></li>
+<li><p>Computing derivatives of complicated functions.</p></li>
+<li><p>Situations where f is not known explicitly or only as a black box.</p></li>
+</ul>
+<p>The basic tools used for numerical derivatives include one tool that we’ve been using extensively (Taylor series), and one more recently (polynomial interpolation).</p>
+</section>
+<section id="taylor-series-approach" class="level2 page-columns page-full" data-number="19.2">
+<h2 data-number="19.2" class="anchored" data-anchor-id="taylor-series-approach"><span class="header-section-number">19.2</span> Taylor Series Approach</h2>
+<p>Let <span class="math inline">\(f: R^{1} \to R^{1}\)</span> with as many derivatives as we need.</p>
+<p>Recall the <em>Taylor series expansion</em> for a function <span class="math display">\[
+f(x+h) = f(x) + h f^{\prime}(x) + \frac{h^2}{2} f^{\prime\prime} (\xi), \qquad \xi \in[x, x+h]
+\]</span></p>
+<p>Rearranging we can write: <span class="math display">\[
+f^\prime (x)  = \frac{f(x+h) - f(x)}{h} - \frac{h}{2} f^{\prime\prime} (\xi)
+\]</span></p>
+<p>This leads to the <strong><em>forward difference</em></strong> approximation, which can be written as:</p>
+<p><span class="math display">\[
+f^{\prime} = \frac{f(x+h) - f(x)}{h}
+\]</span> where we will denote the <em>truncation error</em> by <span class="math display">\[
+-\frac{h}{2}f^{\prime\prime}(\xi)
+\]</span></p>
+<p>Notice that the truncation error can be expressed in Big O notation as <span class="math inline">\(O(h)\)</span> and we therefore say that forward differences are an <span class="math inline">\(O(h)\)</span> approximation or that it is <strong><em>first order accurate</em></strong>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Truncation Error is NOT Roundoff Error
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><em>The truncation error should not be confused with roundoff error!</em></p>
+</div>
+</div>
+<p>Similarly the <strong><em>backward difference</em></strong> approximation can be written as <span class="math display">\[
+f^{\prime} = \frac{f(x) - f(x-h)}{h}
+\]</span></p>
+<p>with a similar error term. Clearly, backward differences are also first order accurate.</p>
+<p><strong><em>Which one should I use?</em></strong></p>
+<p>There is no major difference between the two; it mostly comes down to a matter of convenience or preference. There are however some situations, where it makes more sense to use one over the other. One recent example is when we had to impose a condition on the cubic spline interpolant and we needed to have the derivative of the first and last spline math the derivative of the function. In that case, we should use the forward difference approximation for the first spline and the backward difference approximation for the last spline.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Review - Big O Notation
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Remember that we denote a quantity <span class="math inline">\(x\)</span> as <span class="math inline">\(O(h)\)</span> if it is at most proportional to <span class="math inline">\(h\)</span>, for example <span class="math inline">\(Ch\)</span> for some constant <span class="math inline">\(C\)</span>. One way to think of it as</p>
+<p><span class="math display">\[
+\lim\limits_{h \to 0}\frac{O(h)}{h} = C &lt; \infty
+\]</span></p>
+<p>Notice that according to our definition, both forward and backward difference formulas have truncation error that is <span class="math inline">\(O(h)\)</span>.</p>
+<p><strong><em>Question:</em></strong></p>
+<ul>
+<li><p>What is the order of <span class="math display">\[
+\frac{h}{2} f^{\prime\prime}(x) + \frac{h^2}{3} f^{\prime\prime\prime}(x) ?
+\]</span></p></li>
+<li><p>Just need to take a look at the lowest power of <span class="math inline">\(h\)</span>. If the power of <span class="math inline">\(h\)</span> is 1, we say that it is <em>first order.</em> If the power of <span class="math inline">\(h\)</span> is 2, we say that it is <em>second order,</em> and so on.</p></li>
+</ul>
+<p><em>All other things being equal, we want as high a power of</em> <span class="math inline">\(h\)</span> <em>for our error term as we can achieve!</em></p>
+</div>
+</div>
+<div id="exm-fd" class="theorem example">
+<p><span class="theorem-title"><strong>Example 19.1</strong></span> Computation of forward difference for <span class="math inline">\(\exp(x), x=1\)</span></p>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">c</span>(.<span class="dv">1</span>, .<span class="dv">05</span>, .<span class="dv">025</span>, .<span class="dv">0125</span>, <span class="fl">0.00625</span>, <span class="fl">0.003125</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>xph <span class="ot">&lt;-</span> x <span class="sc">+</span> h</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>fx <span class="ot">&lt;-</span> <span class="fu">exp</span>(x)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>fxph <span class="ot">&lt;-</span> <span class="fu">exp</span>(xph)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>ffwd <span class="ot">&lt;-</span> (fxph<span class="sc">-</span>fx)<span class="sc">/</span>h</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>fprime <span class="ot">&lt;-</span> fx</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>err <span class="ot">&lt;-</span> <span class="fu">abs</span>(ffwd<span class="sc">-</span>fprime)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell page-columns page-full" data-tbl-pos="h!">
+<div class="cell-output-display page-columns page-full">
+<table class="table table-sm table-striped small">
+
+<thead>
+<tr class="header">
+<th style="text-align: right;">h</th>
+<th style="text-align: right;">fprime</th>
+<th style="text-align: right;">F.D</th>
+<th style="text-align: right;">err (F.D)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.100000</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.858842</td>
+<td style="text-align: right;">0.1405601</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.050000</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.787386</td>
+<td style="text-align: right;">0.0691040</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.025000</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.752545</td>
+<td style="text-align: right;">0.0342635</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.012500</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.735342</td>
+<td style="text-align: right;">0.0170603</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.006250</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.726794</td>
+<td style="text-align: right;">0.0085124</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.003125</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.722534</td>
+<td style="text-align: right;">0.0042517</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-table-caption margin-caption">Forward Difference for exp(x), x = 1</div></div>
+</div>
+<div id="exr-fd" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 19.1</strong></span> Compute the forward difference of <span class="math inline">\(f(x) = tan(x), x = \pi/4, h = 0.1, 0.05, 0.025, 0.125, 0.00625, 0.003125\)</span></p>
+<p><strong>Solution:</strong></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> (pi<span class="sc">/</span><span class="dv">4</span>)<span class="sc">*</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">c</span>(.<span class="dv">1</span>, .<span class="dv">05</span>, .<span class="dv">025</span>, .<span class="dv">0125</span>, <span class="fl">0.00625</span>, <span class="fl">0.003125</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>xph <span class="ot">&lt;-</span> x <span class="sc">+</span> h</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>xmh <span class="ot">&lt;-</span> x <span class="sc">-</span> h</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>fx <span class="ot">&lt;-</span> <span class="fu">tan</span>(x)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>fxph <span class="ot">&lt;-</span> <span class="fu">tan</span>(xph)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>fxmh <span class="ot">&lt;-</span> <span class="fu">tan</span>(xmh)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>ffwd <span class="ot">&lt;-</span> (fxph<span class="sc">-</span>fx)<span class="sc">/</span>h</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>fbwd <span class="ot">&lt;-</span> (fx <span class="sc">-</span> fxmh)<span class="sc">/</span>h</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>fprime <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="fu">cos</span>(x)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>err1 <span class="ot">&lt;-</span> <span class="fu">abs</span>(fprime<span class="sc">-</span>ffwd)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>err2 <span class="ot">&lt;-</span> <span class="fu">abs</span>(fprime<span class="sc">-</span>fbwd)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>ex1data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(h, fprime, ffwd, fbwd, err1, err2)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(ex1data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"h"</span>, <span class="st">"fprime"</span>, <span class="st">"F.D"</span>, <span class="st">"B.D"</span>, <span class="st">"err (F.D)"</span>, <span class="st">"err (B.D)"</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(ex1data,<span class="at">caption =</span> <span class="st">'Forward Difference for tan(x), x = pi/4'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<caption>Forward/Backward Difference for tan(x), x = pi/4</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">h</th>
+<th style="text-align: right;">fprime</th>
+<th style="text-align: right;">F.D</th>
+<th style="text-align: right;">B.D</th>
+<th style="text-align: right;">err (F.D)</th>
+<th style="text-align: right;">err (B.D)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.100000</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2.230489</td>
+<td style="text-align: right;">1.823712</td>
+<td style="text-align: right;">0.2304888</td>
+<td style="text-align: right;">0.1762881</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.050000</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2.107112</td>
+<td style="text-align: right;">1.906275</td>
+<td style="text-align: right;">0.1071118</td>
+<td style="text-align: right;">0.0937249</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.025000</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2.051721</td>
+<td style="text-align: right;">1.951616</td>
+<td style="text-align: right;">0.0517205</td>
+<td style="text-align: right;">0.0483838</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.012500</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2.025423</td>
+<td style="text-align: right;">1.975410</td>
+<td style="text-align: right;">0.0254233</td>
+<td style="text-align: right;">0.0245897</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.006250</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2.012605</td>
+<td style="text-align: right;">1.987603</td>
+<td style="text-align: right;">0.0126050</td>
+<td style="text-align: right;">0.0123966</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.003125</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2.006276</td>
+<td style="text-align: right;">1.993776</td>
+<td style="text-align: right;">0.0062761</td>
+<td style="text-align: right;">0.0062241</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="central-differences" class="level2 page-columns page-full" data-number="19.3">
+<h2 data-number="19.3" class="anchored" data-anchor-id="central-differences"><span class="header-section-number">19.3</span> Central Differences</h2>
+<p>Consider the Taylor series at <span class="math inline">\(x+h\)</span> and <span class="math inline">\(x-h\)</span> <span id="eq-taylor1"><span class="math display">\[
+\begin{aligned}
+f(x+h) &amp;= f(x) + hf^\prime(x) + \frac{h^2}{2}f^{\prime\prime}(x) + \frac{h^3}{6}f^{\prime\prime\prime}(\xi_1(x)) \quad\quad \\
+f(x-h) &amp;= f(x) - hf^\prime(x) + \frac{h^2}{2}f^{\prime\prime}(x) - \frac{h^3}{6}f^{\prime\prime\prime}(\xi_2(x))
+\end{aligned}
+\tag{19.1}\]</span></span> for some <span class="math inline">\(\xi_1 \in [x, x+h], \xi_2 \in [x-h, x]\)</span>.</p>
+<p>Subtracting the second equation from the first gives us: <span class="math display">\[
+f(x+h) - f(x-h) = 2h f^\prime(x) + \frac{h^3}{6}[f^{\prime\prime\prime}(\xi_1(x))+f^{\prime\prime\prime}(\xi_2(x))]
+\]</span></p>
+<p>and solving for <span class="math inline">\(f^{\prime}\)</span> we get:</p>
+<p><span class="math display">\[
+f^\prime(x) = \frac{f(x+h) - f(x-h)}{2h} - \frac{h^2}{6}\cdot \frac{1}{2}[f^{\prime\prime\prime}(\xi_1(x))+f^{\prime\prime\prime}(\xi_2(x))]
+\]</span></p>
+<p>The last term that includes the third derivative at two different points can be replaced by using the Intermediate Value Theorem:</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><em>Intermediate Value Theorem:</em> Suppose that <em>(i)</em> f is continuous on the closed finite interval <span class="math inline">\([a,b]\)</span> and <em>(ii)</em> <span class="math inline">\(f(a) &lt; c &lt; f(b)\)</span>. Then there exists some point <span class="math inline">\(x \in [a,b]\)</span> such that <span class="math inline">\(f(x) = c\)</span>.</p>
+</div></div><p>Notice that, since the average value must lie in between the value at the two end points a straightforward application of the IVT says: <span class="math display">\[
+\frac{1}{2}[f^{\prime\prime\prime}(\xi_1(x))+f^{\prime\prime\prime}(\xi_2(x))] = f^{\prime\prime\prime}(\xi), \quad \xi \in [x-h,x+h]
+\]</span></p>
+<p>Substituting for the <span class="math inline">\(f^{\prime\prime\prime}\)</span> terms yields: <span id="eq-centerdiff"><span class="math display">\[
+f^\prime(x) = \frac{f(x+h) - f(x-h)}{2h} - \frac{h^2}{6}f^{\prime\prime\prime}(\xi(x))
+\tag{19.2}\]</span></span></p>
+<p><a href="#eq-centerdiff" class="quarto-xref">Equation&nbsp;<span>19.2</span></a> is called the central (or centered) difference approximation.</p>
+<div id="exm-cdvfd" class="theorem example">
+<p><span class="theorem-title"><strong>Example 19.2</strong></span> Compare central vs.&nbsp;forward differences for <span class="math inline">\(f(x) = \tan(x), x=\pi/4\)</span></p>
+</div>
+<div class="cell page-columns page-full" data-tbl-pos="h!">
+<div class="cell-output-display page-columns page-full">
+<table class="table table-sm table-striped small">
+
+<thead>
+<tr class="header">
+<th style="text-align: right;">h</th>
+<th style="text-align: right;">F.D</th>
+<th style="text-align: right;">err (F.D)</th>
+<th style="text-align: right;">C.D</th>
+<th style="text-align: right;">err (C.D.)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.100000</td>
+<td style="text-align: right;">2.230489</td>
+<td style="text-align: right;">0.2304888</td>
+<td style="text-align: right;">2.027100</td>
+<td style="text-align: right;">0.0271004</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.050000</td>
+<td style="text-align: right;">2.107112</td>
+<td style="text-align: right;">0.1071118</td>
+<td style="text-align: right;">2.006693</td>
+<td style="text-align: right;">0.0066934</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.025000</td>
+<td style="text-align: right;">2.051721</td>
+<td style="text-align: right;">0.0517205</td>
+<td style="text-align: right;">2.001668</td>
+<td style="text-align: right;">0.0016683</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.012500</td>
+<td style="text-align: right;">2.025423</td>
+<td style="text-align: right;">0.0254233</td>
+<td style="text-align: right;">2.000417</td>
+<td style="text-align: right;">0.0004168</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.006250</td>
+<td style="text-align: right;">2.012605</td>
+<td style="text-align: right;">0.0126050</td>
+<td style="text-align: right;">2.000104</td>
+<td style="text-align: right;">0.0001042</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.003125</td>
+<td style="text-align: right;">2.006276</td>
+<td style="text-align: right;">0.0062761</td>
+<td style="text-align: right;">2.000026</td>
+<td style="text-align: right;">0.0000260</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-table-caption margin-caption">Forward v. Central Difference for tan(x), x = pi/4</div></div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Practical Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>It is not too difficult to generate other 3- and 5- point formulats using similar techniques. One must remember that we need to balance accuracy with the additional work needed and to be aware of any special conditions or structure available - for example the case of specifying derivative conditions for cubic splines at the end points, discussed earlier in this section.</p>
+</div>
+</div>
+</section>
+<section id="second-derivative-formulas" class="level2" data-number="19.4">
+<h2 data-number="19.4" class="anchored" data-anchor-id="second-derivative-formulas"><span class="header-section-number">19.4</span> Second Derivative Formulas</h2>
+<p>Using similar techniques as for the centered difference formulas we can develop approximations for the second derivative of a function. Consider once again the Taylor series for a function about a point:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(x+h) &amp;= f(x) + hf^\prime(x) + \frac{h^2}{2}f^{\prime\prime}(x) + \frac{h^3}{6}f^{\prime\prime\prime}(x) + \frac{h^4}{24}f^{(4)}(\xi_1(x)) \quad\quad \\
+f(x-h) &amp;= f(x) - hf^\prime(x) + \frac{h^2}{2}f^{\prime\prime}(x) - \frac{h^3}{6}f^{\prime\prime\prime}(x) + \frac{h^4}{24}f^{(4)}(\xi_2(x))
+\end{aligned}
+\]</span></p>
+<p>Here, as we want to have a formula for the second derivative, our goal is to get rid of the other terms, and in particular the first derivative. Hence, let’s add the two equations:</p>
+<p><span class="math display">\[
+f(x+h) + f(x-h) = 2f(x)  + h^2f^{\prime\prime}(x) + \frac{h^4}{24} \Big [ f^{(4)}(\xi_1(x))+ f^{(4)}(\xi_2(x)) \Big ]
+\]</span></p>
+<p>Solving for <span class="math inline">\(f^{\prime\prime}\)</span> we get:</p>
+<p><span class="math display">\[
+f^{\prime\prime}(x) = \frac{f(x+h)-2f(x) + f(x-h)}{h^2}  - \frac{h^4}{24} \Big [ f^{(4)}(\xi_1(x))+ f^{(4)}(\xi_2(x)) \Big ]
+\]</span></p>
+<p>Now using the same trick we used before by appealing to the IVT, we have the following formula for numerically computing the second derivative.</p>
+<p><span class="math display">\[
+f^{\prime\prime}(x) = \frac{f(x+h)-2f(x) + f(x-h)}{h^2}  - \frac{h^2}{12} f^{(4)}(\xi).
+\]</span></p>
+<p>Again, this approximation is clearly <span class="math inline">\(O(h^2)\)</span> and we say that it is a <em>second order approximation</em>.</p>
+<div id="exm-secderiv" class="theorem example">
+<p><span class="theorem-title"><strong>Example 19.3</strong></span> Second Derivatives using finite differences</p>
+</div>
+<div class="cell tbl-cap-location-margin" data-tbl-cap="Second Derivate for exp(x), x = 1" data-tbl-pos="h!">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3" data-cap-location="margin"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">c</span>(.<span class="dv">1</span>, .<span class="dv">05</span>, .<span class="dv">025</span>, .<span class="dv">0125</span>, <span class="fl">0.00625</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>xph <span class="ot">&lt;-</span> x <span class="sc">+</span> h</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>xmh <span class="ot">&lt;-</span> x <span class="sc">-</span>h</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>fx <span class="ot">&lt;-</span> <span class="fu">exp</span>(x)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>fxph <span class="ot">&lt;-</span> <span class="fu">exp</span>(xph)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>fxmh <span class="ot">&lt;-</span> <span class="fu">exp</span>(xmh)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>f2prime <span class="ot">&lt;-</span> (fxph <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>fx <span class="sc">+</span> fxmh)<span class="sc">/</span> (h<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>fprimeExact <span class="ot">&lt;-</span> fx</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>err <span class="ot">&lt;-</span> <span class="fu">abs</span>(f2prime<span class="sc">-</span>fprimeExact)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<caption>Second Derivate for exp(x), x = 1</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">h</th>
+<th style="text-align: right;">f(x)</th>
+<th style="text-align: right;">f2prime</th>
+<th style="text-align: right;">err</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.10000</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.720548</td>
+<td style="text-align: right;">0.0022660</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.05000</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.718848</td>
+<td style="text-align: right;">0.0005664</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.02500</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.718423</td>
+<td style="text-align: right;">0.0001416</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.01250</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.718317</td>
+<td style="text-align: right;">0.0000354</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.00625</td>
+<td style="text-align: right;">2.718282</td>
+<td style="text-align: right;">2.718291</td>
+<td style="text-align: right;">0.0000088</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>today <span class="ot">&lt;-</span> <span class="fu">Sys.Date</span>()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span>(today, <span class="at">format=</span><span class="st">"Revised: %B %d %Y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Revised: May 07 2024"</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./NumerDiff.html" class="pagination-link" aria-label="Numerical Differentiation">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Numerical Differentiation</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./HigherOrderFD.html" class="pagination-link" aria-label="Finite Differences via Lagrange Polynomials (Optional)">
+        <span class="nav-page-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Finite Differences via Lagrange Polynomials (Optional)</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Numerical Analysis Lecture Notes, Juan C. Meza, jcmeza@ucmerced.edu, 2023</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>This book was built with <a href="https://quarto.org/">Quarto</a>.</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
